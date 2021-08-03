@@ -1,25 +1,43 @@
 import bpy
 
 bl_info = {
-    "name": 'Animated Timer',
+    "name": 'Turn Into Animated Timer',
     "blender": (2, 93, 0),
     "category": "Sequencer",
 }
 
-addon_keymaps = []
-
 class AnimatedTimer(bpy.types.Operator):
-    '''Animated Timer'''
+    '''Turn Into Animated Timer'''
     bl_idname = 'sequencer.animated_timer'
-    bl_label = 'Animated Timer'
+    bl_label = 'Turn Into Animated Timer'
     bl_options = {'REGISTER'}
 
     def execute(self, context):
         print('Executing AnimatedTimer')
 
         strip = context.scene.sequence_editor.active_strip
-        print(strip)
-        strip.text = "New text now!"
+
+        timer_start = strip.frame_start
+        timer_end = strip.frame_final_end
+
+        # Split the strip into 1-frame strips
+
+        ## Use the original as the first one
+        timer_value = 0
+        strip.frame_final_end = strip.frame_start + 1
+
+        ## Create more strips, up until the end of the original
+        current_position = strip.frame_final_end
+        while current_position < timer_end:
+            bpy.ops.sequencer.duplicate()
+            current_strip = context.scene.sequence_editor.active_strip
+            current_strip.frame_start = current_position
+            current_strip.frame_final_end = current_position + 1
+
+            current_strip.text = str(timer_value)
+
+            timer_value += 1
+            current_position += 1
 
         return {'FINISHED'}
 
