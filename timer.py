@@ -12,8 +12,16 @@ class AnimatedTimer(bpy.types.Operator):
     bl_label = 'Turn Into Animated Timer'
     bl_options = {'REGISTER'}
 
+    def displayable(self, timer_value):
+        in_seconds = timer_value // self.fps
+        minutes = in_seconds // 60
+        seconds = in_seconds - minutes * 60
+        return f'{int(minutes):02d}:{int(seconds):02d}'
+
     def execute(self, context):
         print('Executing AnimatedTimer')
+
+        self.fps = context.scene.render.fps / context.scene.render.fps_base
 
         strip = context.scene.sequence_editor.active_strip
 
@@ -23,7 +31,7 @@ class AnimatedTimer(bpy.types.Operator):
         # Split the strip into 1-frame strips
 
         ## Use the original as the first one
-        timer_value = 0
+        frames_passed = 0
         strip.frame_final_end = strip.frame_start + 1
 
         ## Create more strips, up until the end of the original
@@ -34,9 +42,9 @@ class AnimatedTimer(bpy.types.Operator):
             current_strip.frame_start = current_position
             current_strip.frame_final_end = current_position + 1
 
-            current_strip.text = str(timer_value)
+            current_strip.text = self.displayable(frames_passed)
 
-            timer_value += 1
+            frames_passed += 1
             current_position += 1
 
         return {'FINISHED'}
